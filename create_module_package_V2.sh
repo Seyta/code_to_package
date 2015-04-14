@@ -11,7 +11,7 @@
 ##
 ## Configuring the script
 ##
-PATH="/var/www/html/sugar"
+SUGAR_PATH="/var/www/html/sugar"
 
 ##
 ## checking parameters
@@ -20,9 +20,9 @@ if [ -z $1 ] || [ -z $2 ] ; then
        
     echo "Script usage : $0 <module_dir> <module_label>" && exit 1
 fi
-if [ ! -d $PATH/modules/$MODULE_NAME ]; then
+if [ ! -d $SUGAR_PATH/modules/$MODULE_NAME ]; then
 
-    echo "$PATH/modueles/$MODULE_NAME is not an existing module directory" && exit 1
+    echo "$SUGAR_PATH/modueles/$MODULE_NAME is not an existing module directory" && exit 1
 fi
 
 ##
@@ -33,25 +33,25 @@ MODULE_LBL=$2
 OUTPUT_ZIP="$MODULE_NAME.zip"
 
 # Create destination temp dir
-/bin/mkdir -p /tmp/$MODULE_NAME/
+mkdir -p /tmp/$MODULE_NAME/
 
-#if [ ! -d $PATH/modules/$MODULE_NAME/views ]; then
+#if [ ! -d $SUGAR_PATH/modules/$MODULE_NAME/views ]; then
 #
-#    /bin/mkdir  $PATH/modules/$MODULE_NAME/views
+#    mkdir  $SUGAR_PATH/modules/$MODULE_NAME/views
 #fi
 
 ##
 ## Modify language file so all works good
 ##
-LANG_PATH="$PATH/modules/$MODULE_NAME/language"
-for file in `/usr/bin/find $LANG_PATH -type f -exec /bin/ls -1 {} \;`; do
+LANG_PATH="$SUGAR_PATH/modules/$MODULE_NAME/language"
+for file in `find $LANG_PATH -type f -exec /bin/ls -1 {} \;`; do
 
-    /bin/cat "$file" | /bin/grep -q "app_list_strings"
+    cat "$file" | /bin/grep -q "app_list_strings"
     if [ $? -ne 0 ]; then
         echo -e '\n' >> $file
         echo "\$app_list_strings['moduleList']['$MODULE_NAME'] = '$MODULE_LBL';" >> $file
     else
-        /bin/sed -i "/moduleList/c\\\$app_list_strings['moduleList']['$MODULE_NAME'] = '$MODULE_LBL';" $file
+        sed -i "/moduleList/c\\\$app_list_strings['moduleList']['$MODULE_NAME'] = '$MODULE_LBL';" $file
     fi
 done
 
@@ -60,59 +60,59 @@ echo "You are going to create package $OUTPUT_ZIP"
 # make sure dest dir is empty
 if [ -d /tmp/$MODULE_NAME ]; then
     echo "deleting old sources in /tmp";
-    /bin/rm -rf /tmp/$MODULE_NAME
+    rm -rf /tmp/$MODULE_NAME
     if [ -f /tmp/$MODULE_NAME.zip ]; then
         echo "deleting old zip from /tmp"
-        /bin/rm /tmp/$MODULE_NAME.zip
+        rm /tmp/$MODULE_NAME.zip
     fi
 fi
-/bin/mkdir -p /tmp/$MODULE_NAME/modules
+mkdir -p /tmp/$MODULE_NAME/modules
 
 # Copy sources files in destination directiry
-/bin/cp -R $PATH/modules/$MODULE_NAME /tmp/$MODULE_NAME/modules/$MODULE_NAME
+cp -R $SUGAR_PATH/modules/$MODULE_NAME /tmp/$MODULE_NAME/modules/$MODULE_NAME
 
 # Create a README.txt if it does not exist and copy it to temp directory
-if [ ! -f $PATH/modules/$MODULE_NAME/README.txt ]; then
+if [ ! -f $SUGAR_PATH/modules/$MODULE_NAME/README.txt ]; then
 
-    /usr/bin/touch $PATH/modules/$MODULE_NAME/README.txt
-    echo "README.TXT : Please fill this" > $PATH/modules/$MODULE_NAME/README.txt
+    touch $SUGAR_PATH/modules/$MODULE_NAME/README.txt
+    echo "README.TXT : Please fill this" > $SUGAR_PATH/modules/$MODULE_NAME/README.txt
 fi
-/bin/cp $PATH/modules/$MODULE_NAME/README.txt /tmp/README.txt
+cp $SUGAR_PATH/modules/$MODULE_NAME/README.txt /tmp/README.txt
 
 # Create a LICENCE.txt if it does not exist and copy it to temp directory
-if [ ! -f $PATH/modules/$MODULE_NAME/LICENCE.txt ]; then
+if [ ! -f $SUGAR_PATH/modules/$MODULE_NAME/LICENCE.txt ]; then
 
-    /usr/bin/touch $PATH/modules/$MODULE_NAME/LICENCE.txt
-     echo "LICENCE.TXT : Please fill this" > $PATH/modules/$MODULE_NAME/LICENCE.txt
+    touch $SUGAR_PATH/modules/$MODULE_NAME/LICENCE.txt
+     echo "LICENCE.TXT : Please fill this" > $SUGAR_PATH/modules/$MODULE_NAME/LICENCE.txt
 fi
-/bin/cp $PATH/modules/$MODULE_NAME/LICENCE.txt /tmp/$MODULE_NAME//LICENCE.txt
+cp $SUGAR_PATH/modules/$MODULE_NAME/LICENCE.txt /tmp/$MODULE_NAME//LICENCE.txt
 
 
 ##
 ## Check if the module has some custom dev from Studio
 ##
 HAS_CUSTOM=0
-if [ -d $PATH/custom/modules/$MODULE_NAME ]; then
+if [ -d $SUGAR_PATH/custom/modules/$MODULE_NAME ]; then
     HAS_CUSTOM=1
-    /bin/mkdir -p /tmp/$MODULE_NAME/custom/modules 
-    /bin/cp -R $PATH/custom/modules/$MODULE_NAME /tmp/$MODULE_NAME/custom/modules/$MODULE_NAME
+    mkdir -p /tmp/$MODULE_NAME/custom/modules 
+    cp -R $SUGAR_PATH/custom/modules/$MODULE_NAME /tmp/$MODULE_NAME/custom/modules/$MODULE_NAME
 fi
 
 ##
 ## Check if the module has some extension dev from Studio
 ##
 HAS_EXTENSION=0
-if [ -d $PATH/custom/Extension/modules/$MODULE_NAME ]; then
+if [ -d $SUGAR_PATH/custom/Extension/modules/$MODULE_NAME ]; then
     HAS_EXTENSION=1
-    /bin/mkdir -p /tmp/$MODULE_NAME/custom/Extension/modules
-    /bin/cp -R $PATH/custom/Extension/modules/$MODULE_NAME /tmp/$MODULE_NAME/custom/Extension/modules/$MODULE_NAME
+    mkdir -p /tmp/$MODULE_NAME/custom/Extension/modules
+    cp -R $SUGAR_PATH/custom/Extension/modules/$MODULE_NAME /tmp/$MODULE_NAME/custom/Extension/modules/$MODULE_NAME
 fi
 
 COUNT=0
 ##
 ## Create Manifest File
 ##
-/bin/cat << EOF > /tmp/$MODULE_NAME/manifest.php
+cat << EOF > /tmp/$MODULE_NAME/manifest.php
 <?php
 
 \$manifest = array(
@@ -176,7 +176,7 @@ EOF
 COUNT=$(($COUNT + 1))
 
 if [ ! -z $HAS_CUSTOM ]; then
-/bin/cat << EOF >> /tmp/$MODULE_NAME/manifest.php
+cat << EOF >> /tmp/$MODULE_NAME/manifest.php
         $COUNT => 
         array (
           'from' => '<basepath>/custom/modules/$MODULE_NAME',
@@ -187,7 +187,7 @@ COUNT=$(($COUNT + 1))
 fi
 
 if [ ! -z $HAS_EXTENSION ]; then
-/bin/cat << EOF >> /tmp/$MODULE_NAME/manifest.php
+cat << EOF >> /tmp/$MODULE_NAME/manifest.php
         $COUNT => 
         array (
           'from' => '<basepath>/custom/Extension/modules/$MODULE_NAME',
@@ -197,7 +197,7 @@ EOF
 COUNT=$(($COUNT + 1))
 fi
 
-/bin/cat << EOF >> /tmp/$MODULE_NAME/manifest.php
+cat << EOF >> /tmp/$MODULE_NAME/manifest.php
 
       ),
     'language' =>
@@ -224,5 +224,5 @@ EOF
 ## Create ZIp FIle
 ##
 cd /tmp/$MODULE_NAME
-/usr/bin/zip -r $OUTPUT_ZIP modules custom manifest.php LICENCE.txt README.txt >> /dev/null
+zip -r $OUTPUT_ZIP modules custom manifest.php LICENCE.txt README.txt >> /dev/null
 cd -
