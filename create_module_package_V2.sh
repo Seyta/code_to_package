@@ -94,10 +94,21 @@ fi
 HAS_CUSTOM=0
 if [ -d $PATH/custom/modules/$MODULE_NAME ]; then
     HAS_CUSTOM=1
-    /bin/mkdir -p /tmp/$MODULE_NAME/custom/modules
+    /bin/mkdir -p /tmp/$MODULE_NAME/custom/modules 
     /bin/cp -R $PATH/custom/modules/$MODULE_NAME /tmp/$MODULE_NAME/custom/modules/$MODULE_NAME
 fi
 
+##
+## Check if the module has some extension dev from Studio
+##
+HAS_EXTENSION=0
+if [ -d $PATH/custom/Extension/modules/$MODULE_NAME ]; then
+    HAS_EXTENSION=1
+    /bin/mkdir -p /tmp/$MODULE_NAME/custom/Extension/modules
+    /bin/cp -R $PATH/custom/Extension/modules/$MODULE_NAME /tmp/$MODULE_NAME/custom/Extension/modules/$MODULE_NAME
+fi
+
+COUNT=0
 ##
 ## Create Manifest File
 ##
@@ -154,7 +165,7 @@ fi
         ),
     'copy' => 
       array (
-        0 => 
+        $COUNT => 
         array (
           'from' => '<basepath>/modules/$MODULE_NAME',
           'to' => 'modules/$MODULE_NAME',
@@ -162,14 +173,28 @@ fi
 
 EOF
 
-if [ -z HAS_CUSTOM ]; then
+COUNT=$(($COUNT + 1))
+
+if [ ! -z $HAS_CUSTOM ]; then
 /bin/cat << EOF >> /tmp/$MODULE_NAME/manifest.php
-        1 => 
+        $COUNT => 
         array (
           'from' => '<basepath>/custom/modules/$MODULE_NAME',
           'to' => 'custom/modules/$MODULE_NAME',
         ),
 EOF
+COUNT=$(($COUNT + 1))
+fi
+
+if [ ! -z $HAS_EXTENSION ]; then
+/bin/cat << EOF >> /tmp/$MODULE_NAME/manifest.php
+        $COUNT => 
+        array (
+          'from' => '<basepath>/custom/Extension/modules/$MODULE_NAME',
+          'to' => 'custom/Extension/modules/$MODULE_NAME',
+        ),
+EOF
+COUNT=$(($COUNT + 1))
 fi
 
 /bin/cat << EOF >> /tmp/$MODULE_NAME/manifest.php
